@@ -12,15 +12,22 @@ from datetime import datetime
 
 def extract_data():
     # Get all directories in Data
-    directories = os.listdir("/Users/andreasbuervase/Desktop/4.klasse Indøk/Store, distribuerte datamengder/Group project/tdt4225/assignment2_2024/dataset/dataset/Data")
+    directories = os.listdir("./tdt4225/assignment2_2024/dataset/dataset/Data")
     # Create a list to store all users
     users = []
+    # Filter out non-numeric files (like .DS_Store) and sort the numeric filenames
+    numeric_directories = [directory for directory in directories if directory.isdigit()]
+    sorted_directories = sorted(numeric_directories, key=lambda x: int(x))  # Sort numerically
+    ID_datapoints = 0
+    ID_Activity = 0
     # Go through each directory
-    for directory in directories:
+    for directory in sorted_directories:
         # Create a new user with the id of the directory
         user = User(directory, False)
         # Get all files in the directory using a for loop
-        files = os.listdir(f"/Users/andreasbuervase/Desktop/4.klasse Indøk/Store, distribuerte datamengder/Group project/tdt4225/assignment2_2024/dataset/dataset/Data/{directory}")
+        files = os.listdir(f"./tdt4225/assignment2_2024/dataset/dataset/Data/{directory}/Trajectory")
+        # Filter out .DS_Store files
+        files = [file for file in files if not file.startswith(".")]
         # Create a list to store all activities
         activities = []
         # Go through each file
@@ -28,38 +35,45 @@ def extract_data():
             # Check if the file is a .plt file
             if file.endswith(".plt"):
                 # Open the file and read the content
-                with open(f"/Users/andreasbuervase/Desktop/4.klasse Indøk/Store, distribuerte datamengder/Group project/tdt4225/assignment2_2024/dataset/dataset/Data/{directory}/{file}", "r") as f:
+                with open(f"./tdt4225/assignment2_2024/dataset/dataset/Data/{directory}/Trajectory/{file}", "r") as f:
                     lines = f.read().splitlines()
-                    # Get the start and end date time
-                    start_date_time = datetime.strptime(lines[6], "Start Time: %Y-%m-%d %H:%M:%S")
-                    end_date_time = datetime.strptime(lines[-1], "%Y-%m-%d %H:%M:%S")
-                    # Create a new activity with the id of the directory
-                    activity = Activity(directory, directory, "Unknown", start_date_time, end_date_time)
-                    # Create a list to store all trackpoints
-                    trackpoints = []
-                    # Go through each line in the file
-                    for line in lines[6:]:
-                        # Split the line by comma
-                        data = line.split(",")
-                        # Create a new trackpoint
-                        trackpoint = Trackpoint(directory, data[0], data[1], data[3], data[4], data[5], data[6])
-                        # Add the trackpoint to the list
-                        trackpoints.append(trackpoint)
-                    # Set the trackpoints for the activity
-                    activity.trackpoints = trackpoints
-                    # Add the activity to the list
-                    activities.append(activity)
+                    # Checks if the file is longer 2507 linees and yes, skips the file
+                    if len(lines) <= 2506:
+                        # Get the start and end date time from the first and last trackpoints
+                        start_date_time = datetime.strptime(lines[7].split(',')[-2] + " " + lines[7].split(',')[-1], "%Y-%m-%d %H:%M:%S")
+                        end_date_time = datetime.strptime(lines[-1].split(',')[-2] + " " + lines[-1].split(',')[-1], "%Y-%m-%d %H:%M:%S")
+                        # Create a new activity with the id of the directory
+                        activity = Activity(ID_Activity, directory, "Unknown", start_date_time, end_date_time)
+                        ID_Activity += 1
+                        # Create a list to store all trackpoints
+                        trackpoints = []
+                        # Go through each line in the file, dropping the first part of the file
+                        for line in lines[6:]:
+                            # Split the line by comma
+                            data = line.split(",")
+                            # Create a new trackpoint
+                            date_time = datetime.strptime(data[5] + " " + data[6], "%Y-%m-%d %H:%M:%S")
+                            trackpoint = Trackpoint(directory, ID_datapoints, data[0], data[1], data[3], date_time)
+                            ID_datapoints += 1
+                            # Add the trackpoint to the list
+                            trackpoints.append(trackpoint)
+                        # Set the trackpoints for the activity
+                        activity.trackpoints = trackpoints
+                        # Add the activity to the list
+                        activities.append(activity)
         # Set the activities for the user
         user.activities = activities
         # Add the user to the list
         users.append(user)
+        if (users.index(user) == 0):
+            break
     # Return the list of users
     return users
 
 # Make a function to set User.has_labels to True if the user has labels, going through the labeled_ids.txt file
 def set_has_labels(users):
     # Open file "labeled_ids.txt" and read the content
-    with open("/Users/andreasbuervase/Desktop/4.klasse Indøk/Store, distribuerte datamengder/Group project/tdt4225/assignment2_2024/dataset/dataset/labeled_ids.txt", "r") as file:
+    with open("./tdt4225/assignment2_2024/dataset/dataset/labeled_ids.txt", "r") as file:
         labeled_ids = file.read().splitlines()
     # Go through each user
     for user in users:
@@ -72,17 +86,13 @@ def set_has_labels(users):
 
 users = extract_data()
 users = set_has_labels(users)
-for user in users:
+
+# Printing the users, activities and trackpoints
+for user in users[:1]:
     print(user)
-
-
-# # Open file "labeled_ids.txt" and read the content
-# with open("/Users/andreasbuervase/Desktop/4.klasse Indøk/Store, distribuerte datamengder/Group project/tdt4225/assignment2_2024/dataset/dataset/labeled_ids.txt", "r") as file:
-#     labeled_ids = file.read().splitlines()
-#     print(labeled_ids)
-#     # Only keep directories that are in labeled_ids
-#     directories = [d for d in os.listdir("/Users/andreasbuervase/Desktop/4.klasse Indøk/Store, distribuerte datamengder/Group project/tdt4225/assignment2_2024/dataset/dataset/Data") if d in labeled_ids]
-#     # Check if the two lists are identical
-#     are_identical = sorted(labeled_ids) == sorted(directories)
-#     print(are_identical)
+    uservalue = user.get_data()
+    for activity in user.activities:
+        print(activity)
+        # for trackpoint in activity.trackpoints:
+        #     print(trackpoint)
 

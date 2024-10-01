@@ -9,4 +9,7 @@ class Activity:
     
     def __str__(self):
         return f"{self.id}: {self.user_id}: {self.transportation_mode}: {self.start_date_time}: {self.end_date_time}"
+
+    def get_data(self):
+        return [self.id, self.user_id, self.transportation_mode, self.start_date_time, self.end_date_time]
     
