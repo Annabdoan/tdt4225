@@ -1,15 +1,14 @@
 from DbConnector import DbConnector
-import os
+from dataextracter import *
 
 class GeolifeProgram:
     def __init__(self):
         self.connection = DbConnector()
         self.db_connection = self.connection.db_connection
         self.cursor = self.connection.cursor
-        self.users = os.listdir("./dataset/dataset/Data")
-        self.users = sorted([user for user in self.users if user.isdigit()], key=lambda x: int(x))
-        self.labels = open("./dataset/dataset/labeled_ids.txt", "r").read().split("\n")
-
+        self.users = extract_data()
+        self.users = set_has_labels(users)
+        self.users = add_labels(users)
 
     def create_tables(self):
         user_table = """CREATE TABLE IF NOT EXISTS User (
@@ -41,33 +40,34 @@ class GeolifeProgram:
         self.cursor.execute(trackpoint_table)
         self.db_connection.commit()
 
-        print("Tables user, activity and trackpoint created")
-        print(self.users)
-        print("Lable table: ", self.labels)
-
-    def insert_user_data(self, table_name):
-        for user_id in self.users:
-            if user_id in self.labels:
-                query = "INSERT INTO %s (id, has_labels) VALUES ('%s', True)"
-                self.cursor.execute(query % (table_name, user_id))
-            else:
-                query = "INSERT INTO %s (id, has_labels) VALUES ('%s', False)"
-                self.cursor.execute(query % (table_name, user_id))
+    def insert_user_data(self, table_name, user_id, has_labels):
+        query = f"INSERT INTO {table_name} (id, has_labels) VALUES (%s, %s)"
+        values = (user_id, has_labels)
+        self.cursor.execute(query, values)
         self.db_connection.commit()
 
-    def insert_activity_data(self, table_name):
+    def insert_activity_data(self, table_name, user_id, transportation_mode, start_date_time, end_date_time):
         query = "INSERT INTO %s (user_id, transportation_mode, start_date_time, end_date_time) VALUES ('%s', '%s', '%s', '%s')"
-        # self.cursor.execute(query % (table_name, user_id, transportation_mode, start_date_time, end_date_time))
+        values = (table_name, user_id, transportation_mode, start_date_time, end_date_time)
+        self.cursor.execute(query, values)
+        self.db_connection.commit()
 
-
-    def insert_trackpoint_data(self, table_name):
+    def insert_trackpoint_data(self, table_name, activity_id, lat, lon, altitude, date_days, date_time):
         query = "INSERT INTO %s (activity_id, lat, lon, altitude, date_days, date_time) VALUES (%d, %f, %f, %d, %f, '%s')"
+        values = (table_name, activity_id, lat, lon, altitude, date_days, date_time)
+        self.cursor.execute(query, values)
+        self.db_connection.commit()
         # self.cursor.execute(query % (table_name, activity_id, lat, lon, altitude, date_days, date_time))
 
     def show_tables(self):
         self.cursor.execute("SHOW TABLES")
         rows = self.cursor.fetchall()
         print("Tables in the database:", rows)
+
+    def drop_table(self, table_name):
+        print("Dropping table %s..." % table_name)
+        query = "DROP TABLE %s"
+        self.cursor.execute(query % table_name)
 
     def close_connection(self):
         self.connection.close_connection()
@@ -76,10 +76,18 @@ def main():
     program = None
     try:
         program = GeolifeProgram()
+        program.drop_table("Trackpoint")
+        program.drop_table("Activity")
+        program.drop_table("User")
         program.create_tables()
-        program.insert_user_data(table_name="User")
-        # program.insert_activity_data(table_name="Activity")
-        # program.insert_trackpoint_data(table_name="Trackpoint")
+        users = extract_data()
+        users = set_has_labels(users)
+        users = add_labels(users)
+        for user in users:
+            user_data = user.get_data()
+            user_id = user_data[0]
+            has_labels = user_data[1]
+            program.insert_user_data(table_name="User", user_id = user_id, has_labels = has_labels)
         program.show_tables()
     except Exception as e:
         print("ERROR: Failed to create tables:", e)
