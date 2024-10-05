@@ -3,6 +3,7 @@ class User:
         self.id = id
         self.has_labels = has_labels
         self.labels = None
+        self.activities = []
         
     def __str__(self):
         return f"{self.id}: {self.has_labels}"
