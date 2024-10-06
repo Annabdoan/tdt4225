@@ -324,12 +324,13 @@ class ProgramQueries:
     # Sprøsmål: Bruke eksakte koordinater eller en radius rundt koordinatene?
 
     # Find trackpoints tracked in the forbidden city
+
         query_trackpoints_forbidden_city = """
                                             SELECT DISTINCT Activity.user_id
                                             FROM Trackpoint
                                             INNER JOIN Activity ON Trackpoint.activity_id = Activity.id
-                                            WHERE Trackpoint.lat = 39.916
-                                            AND Trackpoint.lon = 116.397
+                                            WHERE Trackpoint.lat BETWEEN 39.915 AND 39.917
+                                            AND Trackpoint.lon BETWEEN 116.396 AND 116.398
                                             """
         self.cursor.execute(query_trackpoints_forbidden_city)
         users_forbidden_city = self.cursor.fetchall()
@@ -345,7 +346,7 @@ class ProgramQueries:
 
     
     def query11(self):
-    # All users who have registered transportation_mode and their mosy used transportation_mode
+    # All users who have registered transportation_mode and their most used transportation_mode
     # The answer should be on format (user_id, most_used_transportation_mode) sorted on user_id
     # Some users may have the same number of activities tagged with e.g. walk and car. 
     # In this case it is up to you to decide which transportation mode to include in your answer (choose one)
@@ -356,7 +357,6 @@ class ProgramQueries:
                                         FROM Activity
                                         WHERE Activity.transportation_mode IS NOT NULL
                                         GROUP BY Activity.user_id, Activity.transportation_mode
-                                        ORDER BY Activity.user_id, mode_count DESC
                                     """
         self.cursor.execute(query_transportation_modes)
         transportation_modes = self.cursor.fetchall()
@@ -365,7 +365,7 @@ class ProgramQueries:
         user_modes = {}
 
         for user_id, transportation_mode, mode_count in transportation_modes:
-            # If user is not in the dictionary, or current mode has higher count, update the entry
+            # If user is not in the dictionary or current mode has a higher count -> update the entry
             if user_id not in user_modes or mode_count > user_modes[user_id][1]:
                 user_modes[user_id] = (transportation_mode, mode_count)
 
@@ -393,9 +393,9 @@ def main():
         # program.query6()
         # program.query7()
         # program.query8()
-        program.query9()
+        # program.query9()
         # program.query10()
-        # program.query11()
+        program.query11()
     except Exception as e:
         print("ERROR: Failed to insert data:", e)
     finally:

@@ -22,7 +22,7 @@ class GeolifeProgram:
                             transportation_mode VARCHAR(30),
                             start_date_time DATETIME,
                             end_date_time DATETIME,
-                            FOREIGN KEY (user_id) REFERENCES User(id)
+                            FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE
                         )"""
         trackpoint_table = """CREATE TABLE IF NOT EXISTS Trackpoint (
                             id INT PRIMARY KEY,
@@ -31,7 +31,7 @@ class GeolifeProgram:
                             lon DOUBLE,
                             altitude INT,
                             date_time DATETIME,
-                            FOREIGN KEY (activity_id) REFERENCES Activity(id)
+                            FOREIGN KEY (activity_id) REFERENCES Activity(id) ON DELETE CASCADE
                         )"""
 
         self.cursor.execute(user_table)
