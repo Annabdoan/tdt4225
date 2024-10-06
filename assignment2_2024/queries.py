@@ -1,4 +1,6 @@
+from DbConnector import DbConnector
 from tabulate import tabulate 
+from math import radians, sin, cos, sqrt, atan2
 
 class ProgramQueries:
     def __init__(self):
@@ -147,6 +149,14 @@ class ProgramQueries:
         
         return year_most_activities, year_most_hours
 
+
+    def haversine(self, lat1, lon1, lat2, lon2):
+        R = 6371.0  # Radius of the Earth in km
+        dlat = radians(lat2 - lat1)
+        dlon = radians(lon2 - lon1)
+        a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return R * c
     
     ## TODO: Litt usikker på om denne er beste approach basert på datasett strl
     def query7(self):
@@ -167,7 +177,7 @@ class ProgramQueries:
         total_distance = 0
 
         # For each activity, get the trackpoints and calculate the total distance
-        for activity in activities:
+        for activity in walking_activities:
             activity_id = activity[0]
             query_trackpoints = """
                                 SELECT lat, lon
@@ -182,7 +192,7 @@ class ProgramQueries:
             for i in range(1, len(trackpoints)):
                 lat1, lon1 = trackpoints[i-1]
                 lat2, lon2 = trackpoints[i]
-                distance += haversine(lat1, lon1, lat2, lon2)
+                total_distance += self.haversine(lat1, lon1, lat2, lon2)
 
         print(f"Total distance walked by user with id=112 in 2008: {total_distance:.2f} km")
         return total_distance
@@ -367,5 +377,30 @@ class ProgramQueries:
             print(f"User ID: {user_id}, Most used transportation mode: {transportation_mode}")
 
         return result  
+    
+    def close_connection(self):
+        self.connection.close_connection()
             
+def main():
+    program = None
+    try:
+        program = ProgramQueries()
+        # program.query1()
+        # program.query2()
+        # program.query3()
+        # program.query4()
+        # program.query5()
+        # program.query6()
+        # program.query7()
+        # program.query8()
+        program.query9()
+        # program.query10()
+        # program.query11()
+    except Exception as e:
+        print("ERROR: Failed to insert data:", e)
+    finally:
+        if program:
+            program.close_connection()
 
+if __name__ == "__main__":
+    main()
