@@ -314,7 +314,7 @@ class ProgramQueries:
         for user_id, invalid_count in invalid_activities_per_user.items():
             print(f"User ID: {user_id}, Invalid activities: {invalid_count}")
 
-        return invalid_activities_per_user     
+        return invalid_activities_per_user
 
 
     def query10(self):
