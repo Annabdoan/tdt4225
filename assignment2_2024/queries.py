@@ -158,7 +158,6 @@ class ProgramQueries:
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return R * c
     
-    ## TODO: Litt usikker på om denne er beste approach basert på datasett strl
     def query7(self):
     # Total distance (in km) walked in 2008 by user with id=112
     # The total distance walked is the sum of the distances between consecutive trackpoints
@@ -260,7 +259,6 @@ class ProgramQueries:
         print("Top 20 users with the most altitude gain:")
         print(table)
 
-        # Return the top 20 users as a list of tuples (id, total meters gained per user)
         return top_20_users
         
         # Spørsmål: Holder d å printe et table eller skal man skrive et nytt table til selve databasen?
@@ -320,9 +318,6 @@ class ProgramQueries:
     def query10(self):
     # Users who have tracked an activity in the Forbidden City of Beijing
     # Forbidden City of Beijing coordinates: lat 39.916, lon 116.397
-
-    # Sprøsmål: Bruke eksakte koordinater eller en radius rundt koordinatene?
-
     # Find trackpoints tracked in the forbidden city
 
         query_trackpoints_forbidden_city = """
@@ -369,7 +364,7 @@ class ProgramQueries:
             if user_id not in user_modes or mode_count > user_modes[user_id][1]:
                 user_modes[user_id] = (transportation_mode, mode_count)
 
-        # Format the results as a list of tuples (user_id, most_used_transportation_mode) sorted on user_id
+        # Format the results as a list of tuples (user_id, most_used_transportation_mode)
         result = [(user_id, transportation_mode) for user_id, (transportation_mode, _) in sorted(user_modes.items())]
 
         print("Users who have registered transportation_mode and their most used transportation_mode:")
@@ -385,16 +380,16 @@ def main():
     program = None
     try:
         program = ProgramQueries()
-        # program.query1()
-        # program.query2()
-        # program.query3()
-        # program.query4()
-        # program.query5()
-        # program.query6()
-        # program.query7()
-        # program.query8()
-        # program.query9()
-        # program.query10()
+        program.query1()
+        program.query2()
+        program.query3()
+        program.query4()
+        program.query5()
+        program.query6()
+        program.query7()
+        program.query8()
+        program.query9()
+        program.query10()
         program.query11()
     except Exception as e:
         print("ERROR: Failed to insert data:", e)
