@@ -126,6 +126,7 @@ def add_labels(users):
 
 
 ###### TESTING THE QUERY FUNCTIONS #####
+# These tests are mainly written by AI-tools #
 
 # Query 1
 # Make a function which counts the number of users, activities and trackpoints
